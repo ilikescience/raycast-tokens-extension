@@ -1,0 +1,4 @@
+# typical ignore file for node js project
+
+.DS_Store
+node_modules
