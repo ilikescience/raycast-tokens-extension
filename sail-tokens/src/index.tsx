@@ -1,11 +1,14 @@
+// import types
+import { TokenValue, Token, ResolvedToken, TokenGroup } from './types';
+
 import { ActionPanel, Detail, List, Action, showToast, Toast, Icon } from "@raycast/api";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import designTokens from "./tokens.json";
 
 // token input can be a string, number, or object
 // we want to always return a string, without the quotation marks that come from JSON.stringify.
-function formatTokenValue(tokenValue) {
+function formatTokenValue(tokenValue: TokenValue): string {
   if (typeof tokenValue === "string") {
     return tokenValue;
   }
@@ -24,41 +27,36 @@ function formatTokenValue(tokenValue) {
 }
 
 function Command() {
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState<string>("");
 
   // Test to see if token value is an alias or not
-  function isTokenAlias(tokenValue) {
+  function isTokenAlias(tokenValue: string | number | object): boolean {
     return typeof tokenValue === "string" && tokenValue.startsWith("{") && tokenValue.endsWith("}");
   }
 
-  function resolveTokenValue(tokenValue, tokens) {
-    const valuePath = [tokenValue];
-    let resolvedToken;
+  function resolveAlias(alias: TokenValue, tokens: TokenGroup): Token {
+    const valuePath: TokenValue[] = [alias];
+    let tokenValue = alias;
+    let reducedToken = {};
 
     while (isTokenAlias(tokenValue)) {
-      const tokenName = tokenValue.substring(1, tokenValue.length - 1);
+      const tokenName = (tokenValue as string).substring(1, (tokenValue as string).length - 1); // removes brackets from alias name
       const tokenParts = tokenName.split(".");
 
-      resolvedToken = tokens; // Start at the root of the tokens object
-      for (const part of tokenParts) {
-        resolvedToken = resolvedToken[part];
-        if (!resolvedToken) {
-          return { value: "Unknown Value", valuePath };
-        }
-      }
-
-      tokenValue = resolvedToken.$value;
+      reducedToken = tokenParts.reduce((acc: object, part: string) => acc[part], tokens);
+      tokenValue = reducedToken.$value;
+      
       valuePath.push(tokenValue); // Track the path of values
     }
     return {
-      value: tokenValue,
-      type: resolvedToken?.$type || "unknown", // Use the resolvedToken here
+      value: resolvedToken.$value,
+      type: resolvedToken.$type,
       valuePath,
     };
   }
 
-  function flattenTokens(obj, parentKey = "", tokensRoot = obj) {
-    let result = [];
+  function flattenTokens(obj:TokenGroup, parentKey = "", tokensRoot = obj) {
+    const result: Token[] = [];
 
     for (const key in obj) {
       if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
@@ -71,7 +69,7 @@ function Command() {
           let resolvedValueInfo;
 
           if (isAlias) {
-            resolvedValueInfo = resolveTokenValue(obj[key].$value, tokensRoot);
+            resolvedValueInfo = resolveAlias(obj[key].$value, tokensRoot);
           }
 
           result.push({
