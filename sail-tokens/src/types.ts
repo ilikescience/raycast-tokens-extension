@@ -5,13 +5,34 @@ export interface Token {
   $type?: string;
   $description?: string;
   $extensions?: {
+    "com.stripe"?: {
+      "tokenName"?: string,
+      "valuePath"?: TokenValue[],
+      "resolvedToken"?: Token
+    },
     [key: string]: unknown;
   };
 }
 
-export interface TokenMap {
-  [key: string]: Token | TokenGroup; // Token or nested TokenGroup
+// Represents the structure of a token group, without the index signature
+export interface TokenGroupBase {
+  $value?: TokenValue;
+  $type?: string;
+  $description?: string;
+  $extensions?: {
+    "com.stripe"?: {
+      "tokenName"?: string,
+      "valuePath"?: [],
+      "resolvedToken"?: Token
+    },
+    [key: string]: unknown;
+  };
 }
 
-// TokenGroup is a Token and a TokenMap
-export type TokenGroup = Token & TokenMap;
+// Represents the index signature for nested tokens or token groups
+export interface TokenMap {
+  [key: string]: Token | TokenGroup;
+}
+
+// TokenGroup is an intersection of TokenGroupBase and NestedTokenMap
+export type TokenGroup = TokenGroupBase & TokenMap;

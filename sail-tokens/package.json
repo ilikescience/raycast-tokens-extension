@@ -20,10 +20,13 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.64.2"
+    "@raycast/api": "^1.64.2",
+    "colorjs.io": "^0.4.5",
+    "js-beautify": "^1.14.11"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^1.0.6",
+    "@types/js-beautify": "^1.14.3",
     "@types/node": "20.8.10",
     "@types/react": "18.2.27",
     "eslint": "^8.51.0",
